@@ -896,24 +896,23 @@ static ir_node *reference_addr(const reference_expression_t *ref)
     entity_t *entity = ref->entity;
     assert(is_declaration(entity));
     
-    if (entity->kind == ENTITY_FUNCTION) {
-        entity->function.address_taken = true;
-        ir_entity *irentity = get_function_entity(&entity->function);
-        
-        if (irentity != NULL) {
-            set_entity_is_cfi_target(irentity, true);
-        }
-        
-        if (entity->function.btk != BUILTIN_NONE) {
-            if (irentity == NULL) {
-                position_t const *const pos = &ref->base.pos;
-                warningf(WARN_OTHER, pos, "taking address of builtin %N", ref->entity);
-                /* simply create a NULL pointer */
-                ir_mode *const mode = get_ir_mode_storage(type_void_ptr);
-                return new_Const(get_mode_null(mode));
-            }
-        }
-    }
+	if (entity->kind == ENTITY_FUNCTION && entity->function.btk == BUILTIN_NONE) {
+		entity->function.address_taken = true;
+	}
+
+	if (entity->kind == ENTITY_FUNCTION && entity->function.btk != BUILTIN_NONE) {
+		ir_entity *irentity = get_function_entity(&entity->function);
+		/* for gcc compatibility we have to produce (dummy) addresses for some
+		 * builtins which don't have entities */
+		if (irentity == NULL) {
+			position_t const *const pos = &ref->base.pos;
+			warningf(WARN_OTHER, pos, "taking address of builtin %N", ref->entity);
+
+			/* simply create a NULL pointer */
+			ir_mode *const mode = get_ir_mode_storage(type_void_ptr);
+			return new_Const(get_mode_null(mode));
+		}
+	}
 
     switch ((declaration_kind_t) entity->declaration.kind) {
     case DECLARATION_KIND_UNKNOWN:
