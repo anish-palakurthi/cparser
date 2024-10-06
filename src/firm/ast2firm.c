@@ -896,7 +896,7 @@ static ir_node *reference_addr(const reference_expression_t *ref)
     entity_t *entity = ref->entity;
     assert(is_declaration(entity));
     
-	if (entity->kind == ENTITY_FUNCTION && entity->function.btk == BUILTIN_NONE) {
+	if (entity->kind == ENTITY_FUNCTION) {
 		entity->function.address_taken = true;
 		if (entity->function.irentity != NULL) {
                 // If it does, update its CFI target status
