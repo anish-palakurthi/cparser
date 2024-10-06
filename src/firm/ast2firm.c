@@ -694,8 +694,8 @@ static ir_entity *get_function_entity(function_t *const function)
         return NULL;
     }
 
-    // Set CFI target attribute here, after entity creation
-    set_entity_is_cfi_target(irentity, function->address_taken);
+    // // Set CFI target attribute here, after entity creation
+    // set_entity_is_cfi_target(irentity, function->address_taken);
 
     fprintf(stderr, "Function %s: address_taken = %d\n", symbol->string, function->address_taken);
 
