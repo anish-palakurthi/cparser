@@ -306,17 +306,9 @@ static void emit_riscv_jalr(ir_node const *const node)
    
     // Error handling
     be_emit_irprintf("1:\n");
-    // Log the error instead of immediately breaking
-    be_emit_irprintf("\tli a0, 1\n");                     // File descriptor 1 (stdout)
-    be_emit_irprintf("\tla a1, cfi_error_msg\n");         // Load address of error message
-    be_emit_irprintf("\tli a2, 23\n");                    // Length of the message
-    be_emit_irprintf("\tli a7, 64\n");                    // Syscall number for write
-    be_emit_irprintf("\tecall\n");                        // Make the syscall
-    be_emit_irprintf("\tjalr\t%s\n", jalr_reg_name);      // Proceed with the call anyway
+    be_emit_irprintf("\tebreak\n");                       // Trigger an exception if CFI check fails
 
     be_emit_irprintf("2:\n");
-    
-
 
 }
 
