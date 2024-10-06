@@ -417,6 +417,7 @@ void riscv_emit_function(ir_graph *const irg)
     be_gas_emit_function_prolog(entity, 4, NULL);
 
     // Check if the function is a CFI target (address-taken)
+	printf("Entity is cfi: %d", get_entity_is_cfi_target(entity));
     if (get_entity_is_cfi_target(entity)) {
         // Get the function type and arity
         ir_type *function_type = get_entity_type(entity);
