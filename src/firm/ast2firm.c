@@ -700,7 +700,7 @@ static ir_entity *get_function_entity(function_t *const function)
     // fprintf(stderr, "Function %s: address_taken = %d\n", symbol->string, function->address_taken);
 
     if (function->address_taken) {
-        set_entity_is_cfi_target(irentity, true);
+        set_entity_is_cfi_target(irentity, 1);
         fprintf(stderr, "Set CFI target for entity %s: 1 (post-creation)\n", symbol->string);
     }
 
@@ -900,7 +900,7 @@ static ir_node *reference_addr(const reference_expression_t *ref)
 		entity->function.address_taken = true;
 		if (entity->function.irentity != NULL) {
                 // If it does, update its CFI target status
-                set_entity_is_cfi_target(entity->function.irentity, true);
+                set_entity_is_cfi_target(entity->function.irentity, 1);
             }
 	}
 
