@@ -306,9 +306,17 @@ static void emit_riscv_jalr(ir_node const *const node)
    
     // Error handling
     be_emit_irprintf("1:\n");
-    be_emit_irprintf("\tebreak\n");                       // Trigger an exception if CFI check fails
+    // Log the error instead of immediately breaking
+    be_emit_irprintf("\tli a0, 1\n");                     // File descriptor 1 (stdout)
+    be_emit_irprintf("\tla a1, cfi_error_msg\n");         // Load address of error message
+    be_emit_irprintf("\tli a2, 23\n");                    // Length of the message
+    be_emit_irprintf("\tli a7, 64\n");                    // Syscall number for write
+    be_emit_irprintf("\tecall\n");                        // Make the syscall
+    be_emit_irprintf("\tjalr\t%s\n", jalr_reg_name);      // Proceed with the call anyway
 
     be_emit_irprintf("2:\n");
+    
+
 
 }
 
@@ -416,20 +424,18 @@ void riscv_emit_function(ir_graph *const irg)
     ir_entity *const entity = get_irg_entity(irg);
     be_gas_emit_function_prolog(entity, 4, NULL);
 
-    // Check if the function is a CFI target (address-taken)
-	printf("Entity is cfi: %d", get_entity_is_cfi_target(entity));
-    if (get_entity_is_cfi_target(entity)) {
-        // Get the function type and arity
-        ir_type *function_type = get_entity_type(entity);
-        unsigned int arity = get_method_n_params(function_type);
-        arity = arity > 255 ? 255 : arity;  // Cap at 255 if larger
+    // Always emit a CFI hint, but use arity 0 for non-CFI targets
+    ir_type *function_type = get_entity_type(entity);
+    unsigned int arity = get_entity_is_cfi_target(entity) ? get_method_n_params(function_type) : 0;
+    arity = arity > 255 ? 255 : arity;  // Cap at 255 if larger
 
-        // Construct the instruction with arity in bits 16-23
-        uint32_t instruction = 0x00002013 | (arity << 16);
+    // Construct the instruction with arity in bits 16-23
+    uint32_t instruction = 0x00002013 | (arity << 16);
 
-        // Emit the instruction
-        be_emit_irprintf("\t.4byte 0x%08x  # CFI hint: arity %u\n", instruction, arity);
-    }
+    // Emit the instruction
+    be_emit_irprintf("\t.4byte 0x%08x  # CFI hint: arity %u\n", instruction, arity);
+
+    printf("Entity %s is cfi: %d, arity: %u\n", get_entity_name(entity), get_entity_is_cfi_target(entity), arity);
 
     ir_node **const blk_sched = be_create_block_schedule(irg);
     ir_reserve_resources(irg, IR_RESOURCE_IRN_LINK);
